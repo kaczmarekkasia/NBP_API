@@ -76,56 +76,53 @@ public class Main {
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
             exchangeRatesSeries = (ExchangeRatesSeries) unmarshaller.unmarshal(new URL(requestURL));
 
-            System.out.println(exchangeRatesSeries);
+            String command = loadTypeOfCalculationFromUser(scanner, tableFromUser);
 
+            switch (command) {
+                case "A":
+                    System.out.println("Średni kurs waluty to:");
+                    System.out.println(calculateMediumCurrencyRateMid(exchangeRatesSeries));
+                    break;
+                case "B":
+                    System.out.println("Odchylenia maksymalne średniego kursu to:");
+                    differenceBetweenMaxAndMinMid(exchangeRatesSeries);
+                    break;
+                case "C":
+                    System.out.println("Maksymalna wartość kursu to:" + returnMaxMid(exchangeRatesSeries));
+                    System.out.println("Minimalna wartość kursu to:" + returnMinMid(exchangeRatesSeries));
+                    break;
+                case "D":
+                    System.out.println("Średnia cena sprzedaży to:");
+                    System.out.println(calculateMediumCurrencyRateBid(exchangeRatesSeries));
+                    break;
+                case "E":
+                    System.out.println("Odchylenia maksymalne cen sprzedaży to:");
+                    differenceBetweenMaxAndMinBid(exchangeRatesSeries);
+                    break;
+                case "F":
+                    System.out.println("Maksymalna wartość sorzedaży to:" + returnMaxBid(exchangeRatesSeries));
+                    System.out.println("Minimalna wartość sprzedaży to:" + returnMinBid(exchangeRatesSeries));
+                    break;
+                case "G":
+                    System.out.println("Średnia cena zakupy to:");
+                    System.out.println(calculateMediumCurrencyRateAsk(exchangeRatesSeries));
+                    break;
+                case "H":
+                    System.out.println("Odchylenia maksymalne cen zakupu to:");
+                    differenceBetweenMaxAndMinAsk(exchangeRatesSeries);
+                    break;
+                case "I":
+                    System.out.println("Maksymalna wartość zakupu to:" + returnMaxAsk(exchangeRatesSeries));
+                    System.out.println("Minimalna wartość zakupu to:" + returnMinAsk(exchangeRatesSeries));
+                    break;
+            }
+        } catch (UnmarshalException e) {
+            System.out.println("Brak danych z podanego okresu");
         } catch (JAXBException e) {
             e.printStackTrace();
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
-
-        String command = loadTypeOfCalculationFromUser(scanner, tableFromUser);
-
-        switch (command) {
-            case "A":
-                System.out.println("Średni kurs waluty to:");
-                System.out.println(calculateMediumCurrencyRateMid(exchangeRatesSeries));
-                break;
-            case "B":
-                System.out.println("Odchylenia maksymalne średniego kursu to:");
-                differenceBetweenMaxAndMinMid(exchangeRatesSeries);
-                break;
-            case "C":
-                System.out.println("Maksymalna wartość kursu to:" + returnMaxMid(exchangeRatesSeries));
-                System.out.println("Minimalna wartość kursu to:" + returnMinMid(exchangeRatesSeries));
-                break;
-            case "D":
-                System.out.println("Średnia cena sprzedaży to:");
-                System.out.println(calculateMediumCurrencyRateBid(exchangeRatesSeries));
-                break;
-            case "E":
-                System.out.println("Odchylenia maksymalne cen sprzedaży to:");
-                differenceBetweenMaxAndMinBid(exchangeRatesSeries);
-                break;
-            case "F":
-                System.out.println("Maksymalna wartość sorzedaży to:" + returnMaxBid(exchangeRatesSeries));
-                System.out.println("Minimalna wartość sprzedaży to:" + returnMinBid(exchangeRatesSeries));
-                break;
-            case "G":
-                System.out.println("Średnia cena zakupy to:");
-                System.out.println(calculateMediumCurrencyRateAsk(exchangeRatesSeries));
-                break;
-            case "H":
-                System.out.println("Odchylenia maksymalne cen zakupu to:");
-                differenceBetweenMaxAndMinAsk(exchangeRatesSeries);
-                break;
-            case "I":
-                System.out.println("Maksymalna wartość zakupu to:" + returnMaxAsk(exchangeRatesSeries));
-                System.out.println("Minimalna wartość zakupyu to:" + returnMinAsk(exchangeRatesSeries));
-                break;
-
-        }
-
 
     }
 
@@ -137,17 +134,17 @@ public class Main {
 
             System.out.println("Podaj co chcesz obliczyć");
             if (tableFromUser.equalsIgnoreCase("a")) {
-                System.out.println("\na - Kurs średni z danego okresu");
-                System.out.println("\nb - Odchylenia maksymalne z danego okresu");
-                System.out.println("\nc - Maksymalny i minimalny kurs średni z danego okresu");
+                System.out.println("a - Kurs średni z danego okresu");
+                System.out.println("b - Odchylenia maksymalne z danego okresu");
+                System.out.println("c - Maksymalny i minimalny kurs średni z danego okresu");
             }
             if (tableFromUser.equalsIgnoreCase("c")) {
-                System.out.println("\nd - Średią wartość sprzedaży z danego okresu");
-                System.out.println("\ne - Odchylenia maksymalne dla ceny ceny sprzeadży z danego okresu");
-                System.out.println("\nf - Maksymalna i minimalna cena sprzedaży z danego okresu");
-                System.out.println("\ng - Średią wartość zakupu z danego okresu");
-                System.out.println("\nh - Odchylenia maksymalne dla ceny zakupu z danego okresu");
-                System.out.println("\ni - Maksymalna i minimalna cena zakupu z danego okresu");
+                System.out.println("d - Średią wartość sprzedaży z danego okresu");
+                System.out.println("e - Odchylenia maksymalne dla ceny ceny sprzeadży z danego okresu");
+                System.out.println("f - Maksymalna i minimalna cena sprzedaży z danego okresu");
+                System.out.println("g - Średią wartość zakupu z danego okresu");
+                System.out.println("h - Odchylenia maksymalne dla ceny zakupu z danego okresu");
+                System.out.println("i - Maksymalna i minimalna cena zakupu z danego okresu");
             }
 
             command = scanner.nextLine().toUpperCase();
