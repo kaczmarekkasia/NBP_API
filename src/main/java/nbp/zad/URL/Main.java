@@ -14,6 +14,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Arrays;
+import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.Scanner;
 
 public class Main {
@@ -43,7 +45,7 @@ public class Main {
             }
         } while (dateStart.isAfter(dateEnd));
         //ustalenie rodzaju tabeli
-        Tables tableFromUser = loadTableFromUSer(scanner);
+        String tableFromUser = loadTableFromUSer(scanner);
 
         DataFormat dataFormat = loadDataFormatFromUser(scanner);
 
@@ -59,12 +61,12 @@ public class Main {
         System.out.println("Twój żądany adres URL to: " + requestURL);
 
 //        metoda lodContentFromURL ładuje zawartość strony do stringa i zwraca go w wyniku
-//        jeśli coś pójdzi enie tak, zwróci null
+//        jeśli coś pójdzie nie tak, zwróci null
 //        String apiContent = loadContentFromURL(requestURL);
 //        System.out.println(apiContent);
 
 
-
+        ExchangeRatesSeries exchangeRatesSeries = null;
         try {
             JAXBContext jaxbContext = JAXBContext.newInstance(ExchangeRatesSeries.class);
 
@@ -72,7 +74,7 @@ public class Main {
             //Unmarshaller - odwrotnie
 
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-            ExchangeRatesSeries exchangeRatesSeries =(ExchangeRatesSeries) unmarshaller.unmarshal(new URL(requestURL));
+            exchangeRatesSeries = (ExchangeRatesSeries) unmarshaller.unmarshal(new URL(requestURL));
 
             System.out.println(exchangeRatesSeries);
 
@@ -81,7 +83,169 @@ public class Main {
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
+
+        String command = loadTypeOfCalculationFromUser(scanner, tableFromUser);
+
+        switch (command) {
+            case "A":
+                System.out.println("Średni kurs waluty to:");
+                System.out.println(calculateMediumCurrencyRateMid(exchangeRatesSeries));
+                break;
+            case "B":
+                System.out.println("Odchylenia maksymalne średniego kursu to:");
+                differenceBetweenMaxAndMinMid(exchangeRatesSeries);
+                break;
+            case "C":
+                System.out.println("Maksymalna wartość kursu to:" + returnMaxMid(exchangeRatesSeries));
+                System.out.println("Minimalna wartość kursu to:" + returnMinMid(exchangeRatesSeries));
+                break;
+            case "D":
+                System.out.println("Średnia cena sprzedaży to:");
+                System.out.println(calculateMediumCurrencyRateBid(exchangeRatesSeries));
+                break;
+            case "E":
+                System.out.println("Odchylenia maksymalne cen sprzedaży to:");
+                differenceBetweenMaxAndMinBid(exchangeRatesSeries);
+                break;
+            case "F":
+                System.out.println("Maksymalna wartość sorzedaży to:" + returnMaxBid(exchangeRatesSeries));
+                System.out.println("Minimalna wartość sprzedaży to:" + returnMinBid(exchangeRatesSeries));
+                break;
+            case "G":
+                System.out.println("Średnia cena zakupy to:");
+                System.out.println(calculateMediumCurrencyRateAsk(exchangeRatesSeries));
+                break;
+            case "H":
+                System.out.println("Odchylenia maksymalne cen zakupu to:");
+                differenceBetweenMaxAndMinAsk(exchangeRatesSeries);
+                break;
+            case "I":
+                System.out.println("Maksymalna wartość zakupu to:" + returnMaxAsk(exchangeRatesSeries));
+                System.out.println("Minimalna wartość zakupyu to:" + returnMinAsk(exchangeRatesSeries));
+                break;
+
+        }
+
+
     }
+
+
+    private static String loadTypeOfCalculationFromUser(Scanner scanner, String tableFromUser) {
+        String command = null;
+
+        do {
+
+            System.out.println("Podaj co chcesz obliczyć");
+            if (tableFromUser.equalsIgnoreCase("a")) {
+                System.out.println("\na - Kurs średni z danego okresu");
+                System.out.println("\nb - Odchylenia maksymalne z danego okresu");
+                System.out.println("\nc - Maksymalny i minimalny kurs średni z danego okresu");
+            }
+            if (tableFromUser.equalsIgnoreCase("c")) {
+                System.out.println("\nd - Średią wartość sprzedaży z danego okresu");
+                System.out.println("\ne - Odchylenia maksymalne dla ceny ceny sprzeadży z danego okresu");
+                System.out.println("\nf - Maksymalna i minimalna cena sprzedaży z danego okresu");
+                System.out.println("\ng - Średią wartość zakupu z danego okresu");
+                System.out.println("\nh - Odchylenia maksymalne dla ceny zakupu z danego okresu");
+                System.out.println("\ni - Maksymalna i minimalna cena zakupu z danego okresu");
+            }
+
+            command = scanner.nextLine().toUpperCase();
+
+
+            if (!command.equalsIgnoreCase("a") && !command.equalsIgnoreCase("b") && !command.equalsIgnoreCase("c") &&
+                    !command.equalsIgnoreCase("d") && !command.equalsIgnoreCase("e") && !command.equalsIgnoreCase("f") &&
+                    !command.equalsIgnoreCase("g") && !command.equalsIgnoreCase("h") && !command.equalsIgnoreCase("i")) {
+                command = null;
+                System.err.println("Niepoprawny rodzaj obliczeń. Wpisz ponownie co chcesz obliczyć.");
+            }
+        } while (command == null);
+        return command;
+    }
+
+    //dla Ask
+    private static double returnMaxAsk(ExchangeRatesSeries exchangeRatesSeries) {
+        return exchangeRatesSeries.getRates().stream()
+                .mapToDouble(r -> r.getAsk())
+                .max().getAsDouble();
+
+    }
+
+    private static double returnMinAsk(ExchangeRatesSeries exchangeRatesSeries) {
+        return exchangeRatesSeries.getRates().stream()
+                .mapToDouble(r -> r.getAsk())
+                .min().getAsDouble();
+
+    }
+
+
+    private static double calculateMediumCurrencyRateAsk(ExchangeRatesSeries exchangeRatesSeries) {
+        return exchangeRatesSeries.getRates().stream()
+                .mapToDouble(r -> r.getAsk())
+                .sum() / exchangeRatesSeries.getRates().size();
+
+    }
+
+    private static void differenceBetweenMaxAndMinAsk(ExchangeRatesSeries exchangeRatesSeries) {
+        System.out.println(returnMaxAsk(exchangeRatesSeries) - returnMinAsk(exchangeRatesSeries));
+
+    }
+
+    //obliczenia dla Bid
+    private static double returnMaxBid(ExchangeRatesSeries exchangeRatesSeries) {
+        return exchangeRatesSeries.getRates().stream()
+                .mapToDouble(r -> r.getBid())
+                .max().getAsDouble();
+
+    }
+
+    private static double returnMinBid(ExchangeRatesSeries exchangeRatesSeries) {
+        return exchangeRatesSeries.getRates().stream()
+                .mapToDouble(r -> r.getBid())
+                .min().getAsDouble();
+
+    }
+
+
+    private static double calculateMediumCurrencyRateBid(ExchangeRatesSeries exchangeRatesSeries) {
+        return exchangeRatesSeries.getRates().stream()
+                .mapToDouble(r -> r.getBid())
+                .sum() / exchangeRatesSeries.getRates().size();
+
+    }
+
+    private static void differenceBetweenMaxAndMinBid(ExchangeRatesSeries exchangeRatesSeries) {
+        System.out.println(returnMaxBid(exchangeRatesSeries) - returnMinBid(exchangeRatesSeries));
+    }
+
+    //obliczenia dla Mid
+    private static double returnMaxMid(ExchangeRatesSeries exchangeRatesSeries) {
+        return exchangeRatesSeries.getRates().stream()
+                .mapToDouble(r -> r.getMid())
+                .max().getAsDouble();
+
+    }
+
+    private static double returnMinMid(ExchangeRatesSeries exchangeRatesSeries) {
+        return exchangeRatesSeries.getRates().stream()
+                .mapToDouble(r -> r.getMid())
+                .min().getAsDouble();
+
+    }
+
+
+    private static double calculateMediumCurrencyRateMid(ExchangeRatesSeries exchangeRatesSeries) {
+        return exchangeRatesSeries.getRates().stream()
+                .mapToDouble(r -> r.getMid())
+                .sum() / exchangeRatesSeries.getRates().size();
+
+    }
+
+    private static void differenceBetweenMaxAndMinMid(ExchangeRatesSeries exchangeRatesSeries) {
+        System.out.println(returnMaxMid(exchangeRatesSeries) - returnMinMid(exchangeRatesSeries));
+    }
+
+    //pozostałe metody
 
     private static String loadContentFromURL(String requestURL) {
         String apiContent = null;
@@ -93,8 +257,8 @@ public class Main {
             // input (dla naszej aplikacji) to wejsćie, czyli do naszej aplikacji będzie ładowany zasób z zewnątrz
             InputStream inputStream = url.openStream();
             //buffered reader pozwala czytać zasób, ale wymaga klasy pośredniczącej( np:
-                                                                                        //plik = FileReader,
-                                                                                        //stream = InputStreamReader,
+            //plik = FileReader,
+            //stream = InputStreamReader,
             //posiada metodę "readline()' - zwraca jedną linię, lub jeśli nie ma treści zwraca null
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
 
@@ -103,7 +267,7 @@ public class Main {
 
 
             //dopóki jest jakaś linia tekstu do przeczytania, przeczytaj ją i przypisz do "liniaTekstuZReadera"
-            while ((liniaZTekstuZReadera = bufferedReader.readLine())!= null){
+            while ((liniaZTekstuZReadera = bufferedReader.readLine()) != null) {
                 builder.append(liniaZTekstuZReadera);
             }
             //pamiętajmy o zmykaniu otwartych zasobów
@@ -127,7 +291,7 @@ public class Main {
         do {
             try {
                 System.out.println("Podaj format danych" + Arrays.toString(DataFormat.values()));
-               dataFormat = scanner.nextLine().toUpperCase();
+                dataFormat = scanner.nextLine().toUpperCase();
                 dataFormatEnum = DataFormat.valueOf(dataFormat);
             } catch (IllegalArgumentException iae) {
                 System.err.println("Niepoprawny kod danych! podaj go ponownie!");
@@ -170,20 +334,18 @@ public class Main {
 
     }
 
-    public static Tables loadTableFromUSer(Scanner scanner) {
+    public static String loadTableFromUSer(Scanner scanner) {
         String table;
-        Tables tableFromUserEnum = null;
         do {
-            try {
-                System.out.println("Podaj rodzaj tabeli " + Arrays.toString(Tables.values()));
-                table = scanner.nextLine().toUpperCase();
-                tableFromUserEnum = Tables.valueOf(table);
-            } catch (IllegalArgumentException iae) {
-                System.out.println("Niepoprawny rodzaj tabeli! Podaj go ponownie");
-            }
-        } while (tableFromUserEnum == null);
+            System.out.println("Podaj typ tabeli: ASK/BID = C, MID - A/B");
+            table = scanner.nextLine();
 
-        return tableFromUserEnum;
+            if (!table.equalsIgnoreCase("C") && !table.equalsIgnoreCase("A") && !table.equalsIgnoreCase("B")) {
+                table = null;
+                System.err.println("Niepoprawny typ tabeli. Wpisz ponownie typ tabeli.");
+            }
+        } while (table == null);
+        return table;
     }
 
 }
