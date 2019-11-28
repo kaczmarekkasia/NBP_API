@@ -27,6 +27,7 @@ public class Main {
 
         Scanner scanner = new Scanner(System.in);
 
+
         System.out.println("Witaj w konsolowej aplikacji do pobierania kursów walut z API NBP.");
 
         //ustalenie waluty
@@ -66,6 +67,11 @@ public class Main {
 //        System.out.println(apiContent);
 
 
+        przetwarzanieXML(scanner, tableFromUser, requestURL);
+
+    }
+
+    private static void przetwarzanieXML(Scanner scanner, String tableFromUser, String requestURL) {
         ExchangeRatesSeries exchangeRatesSeries = null;
         try {
             JAXBContext jaxbContext = JAXBContext.newInstance(ExchangeRatesSeries.class);
@@ -123,7 +129,6 @@ public class Main {
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
-
     }
 
 
@@ -174,7 +179,6 @@ public class Main {
                 .min().getAsDouble();
 
     }
-
 
     private static double calculateMediumCurrencyRateAsk(ExchangeRatesSeries exchangeRatesSeries) {
         return exchangeRatesSeries.getRates().stream()
